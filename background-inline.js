@@ -17,15 +17,26 @@ if (decoded.length < 12 || decoded.subarray(0, 4).toString('ascii') !== 'RIFF' |
 const version = crypto.createHash('sha1').update(decoded).digest('hex').slice(0, 10);
 const dataUrl = `url("data:image/webp;base64,${raw}")`;
 
-// The main build creates the theme. Replace its runtime CSS variable with a
-// self-contained data URL so the customer background cannot disappear because
-// of Vercel static-output handling, routing, MIME type, or asset caching.
-html = html.replace(/var\(--salata-bg-image,none\)/g, dataUrl);
+// Use a real DOM layer instead of html/body pseudo-elements. This avoids the
+// stacking-context behavior that caused the photo to disappear in production.
+// The image is fully self-contained, so Vercel routing, MIME type, CDN cache,
+// and generated-file handling cannot make the customer background disappear.
+const backgroundCss = `<style id="salata-background-layer">
+html,body{min-height:100%;background:#111711!important}
+body{position:relative;isolation:isolate;background-attachment:fixed!important}
+#salata-bg-layer{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(8,14,9,.10),rgba(8,14,9,.30)),${dataUrl};background-position:center center;background-size:cover;background-repeat:no-repeat}
+#customerApp,#adminApp{position:relative;z-index:1;min-height:100vh}
+</style>`;
+
+html = html.replace(/<style id="salata-background-layer">[\s\S]*?<\/style>/gi, '');
 html = html.replace(/<script id="salata-background-runtime">[\s\S]*?<\/script>/gi, '');
-html = html.replace(/background-attachment:fixed!important/g, `background-attachment:fixed!important;background-image:linear-gradient(180deg,rgba(8,14,9,.18),rgba(8,14,9,.42)),${dataUrl}!important`);
+html = html.replace(/<div id="salata-bg-layer"><\/div>/gi, '');
+html = html.replace('</head>', backgroundCss + '\n</head>');
+html = html.replace(/<body([^>]*)>/i, '<body$1><div id="salata-bg-layer" aria-hidden="true"></div>');
 
 // Keep a deterministic marker for debugging the deployed HTML.
+html = html.replace(/<!-- SALATA_BACKGROUND_INLINE:[^>]* -->/gi, '');
 html = html.replace('</head>', `<!-- SALATA_BACKGROUND_INLINE:${version} -->\n</head>`);
 
 fs.writeFileSync(htmlPath, html);
-console.log(`SALATA background inlined successfully: ${version}`);
+console.log(`SALATA background inline layer installed successfully: ${version}`);

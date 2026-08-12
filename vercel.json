@@ -1,6 +1,1 @@
-{
-  "rewrites": [
-    { "source": "/admin", "destination": "/index.html" },
-    { "source": "/admin/", "destination": "/index.html" }
-  ]
-}
+{"buildCommand":"node build.js","rewrites":[{"source":"/admin","destination":"/index.html"},{"source":"/admin/","destination":"/index.html"}]}

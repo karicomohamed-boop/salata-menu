@@ -1,0 +1,1 @@
+alter table public.menu_items add column if not exists track_stock boolean not null default false;alter table public.menu_items add column if not exists quantity integer not null default 0;alter table public.menu_items add constraint menu_items_quantity_nonnegative check (quantity>=0);

@@ -30,10 +30,13 @@ html = html.replace(/<meta property="og:description"[^>]*>\s*/gi, '');
 
 // Always provide a readable fallback, then replace it with the real interior photo
 // as soon as the bundled asset is decoded in the browser.
+// IMPORTANT: the photo layer belongs to BODY, not HTML. A body background is
+// painted on the page canvas and can cover an HTML pseudo-element; placing the
+// fixed layer on body keeps it reliably visible in production.
 const themeCss = `<style id="salata-final-theme">
-html,body{min-height:100%;background:linear-gradient(180deg,#263026 0%,#111711 100%)!important;background-attachment:fixed!important}
-html{position:relative}
-html:before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(8,14,9,.22),rgba(8,14,9,.42)),var(--salata-bg-image,none);background-position:center center;background-size:cover;background-repeat:no-repeat}
+html{min-height:100%;background:#111711!important}
+body{min-height:100%;position:relative;background:transparent!important;background-attachment:fixed!important;color:inherit}
+body:before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(8,14,9,.22),rgba(8,14,9,.42)),var(--salata-bg-image,none);background-position:center center;background-size:cover;background-repeat:no-repeat;background-attachment:fixed}
 #customerApp,#adminApp{position:relative;z-index:1;min-height:100vh}
 .top{background:rgba(255,255,255,.06)!important;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
 .veg-pattern{background-color:transparent!important;background-image:none!important}

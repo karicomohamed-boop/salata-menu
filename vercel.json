@@ -1,7 +1,7 @@
 {
   "$schema":"https://openapi.vercel.sh/vercel.json",
   "framework":null,
-  "buildCommand":"node build.js && node background-inline.js && echo SALATA_BACKGROUND_BUILD_OK",
+  "buildCommand":"node build.js",
   "outputDirectory":".",
   "rewrites":[
     {"source":"/admin","destination":"/index.html"},

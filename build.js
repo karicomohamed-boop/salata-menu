@@ -4,7 +4,7 @@ const htmlPath = 'index.html';
 let html = fs.readFileSync(htmlPath, 'utf8');
 let backgroundVersion = 'fallback';
 // Set the default background image to menu-gb.webp
-let backgroundImage = 'url("menu-bg.webp")';
+let backgroundImage = 'url("background-bg.png")';
 
 try {
   // Keeping the b64 fallback in case you still generate it, but updated the filenames to match menu-gb

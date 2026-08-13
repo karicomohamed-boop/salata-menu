@@ -1,35 +1,37 @@
-const fs=require('fs');
-const crypto=require('crypto');
-const htmlPath='index.html';
-let html=fs.readFileSync(htmlPath,'utf8');
-let backgroundVersion='fallback';
-let backgroundImage='none';
+const fs = require('fs');
+const crypto = require('crypto');
+const htmlPath = 'index.html';
+let html = fs.readFileSync(htmlPath, 'utf8');
+let backgroundVersion = 'fallback';
+// Set the default background image to menu-gb.webp
+let backgroundImage = 'url("menu-gb.webp")';
 
-try{
-  if(fs.existsSync('menu-bg.b64')){
-    const raw=fs.readFileSync('menu-bg.b64','utf8').replace(/\s+/g,'').trim();
-    const decoded=Buffer.from(raw,'base64');
-    const isWebp=decoded.length>12&&decoded.subarray(0,4).toString('ascii')==='RIFF'&&decoded.subarray(8,12).toString('ascii')==='WEBP';
-    if(isWebp){
-      fs.writeFileSync('menu-bg.webp',decoded);
-      backgroundVersion=crypto.createHash('sha1').update(decoded).digest('hex').slice(0,10);
-      backgroundImage=`url("data:image/webp;base64,${raw}")`;
+try {
+  // Keeping the b64 fallback in case you still generate it, but updated the filenames to match menu-gb
+  if (fs.existsSync('menu-gb.b64')) {
+    const raw = fs.readFileSync('menu-gb.b64', 'utf8').replace(/\s+/g, '').trim();
+    const decoded = Buffer.from(raw, 'base64');
+    const isWebp = decoded.length > 12 && decoded.subarray(0, 4).toString('ascii') === 'RIFF' && decoded.subarray(8, 12).toString('ascii') === 'WEBP';
+    if (isWebp) {
+      fs.writeFileSync('menu-gb.webp', decoded);
+      backgroundVersion = crypto.createHash('sha1').update(decoded).digest('hex').slice(0, 10);
+      backgroundImage = `url("data:image/webp;base64,${raw}")`;
     }
   }
-}catch(err){console.warn('Background asset skipped:',err.message)}
+} catch (err) { console.warn('Background asset skipped:', err.message) }
 
-html=html.replace(/<style id="salata-final-theme">[\s\S]*?<\/style>/gi,'');
-html=html.replace(/<style id="salata-redesign">[\s\S]*?<\/style>/gi,'');
-html=html.replace(/<script id="salata-stock-build">[\s\S]*?<\/script>/gi,'');
-html=html.replace(/<meta name="keywords"[^>]*>\s*/gi,'');
-html=html.replace(/<meta property="og:title"[^>]*>\s*/gi,'');
-html=html.replace(/<meta property="og:description"[^>]*>\s*/gi,'');
+html = html.replace(/<style id="salata-final-theme">[\s\S]*?<\/style>/gi, '');
+html = html.replace(/<style id="salata-redesign">[\s\S]*?<\/style>/gi, '');
+html = html.replace(/<script id="salata-stock-build">[\s\S]*?<\/script>/gi, '');
+html = html.replace(/<meta name="keywords"[^>]*>\s*/gi, '');
+html = html.replace(/<meta property="og:title"[^>]*>\s*/gi, '');
+html = html.replace(/<meta property="og:description"[^>]*>\s*/gi, '');
 
-html=html.replace(/const cats=\[[\s\S]*?\];let active=/,`const cats=[['hot','المشروبات الساخنة','☕'],['drinks','العصائر','🥤'],['meals','وجبات هيلثي','🥗'],['extras','السلطة','🥗'],['drinks','مشروبات طاقة','⚡'],['drinks','عصائر فريش','🧃'],['snacks','سناكس','🍪']];let active=`);
+html = html.replace(/const cats=\[[\s\S]*?\];let active=/, `const cats=[['hot','المشروبات الساخنة','☕'],['drinks','العصائر','🥤'],['meals','وجبات هيلثي','🥗'],['extras','السلطة','🥗'],['drinks','مشروبات طاقة','⚡'],['drinks','عصائر فريش','🧃'],['snacks','سناكس','🍪']];let active=`);
 
-html=html.replace(/<header class="top">[\s\S]*?<\/header>/i,`<header class="top salata-top"><a class="salata-brand" href="#" aria-label="سلطة"><img src="logo.svg" alt="سلطة"></a><nav class="salata-nav"><button onclick="window.scrollTo({top:0,behavior:'smooth'})">الرئيسية</button><button onclick="selectCat('meals');window.scrollTo({top:430,behavior:'smooth'})">وجبات هيلثي</button><button onclick="selectCat('drinks');window.scrollTo({top:430,behavior:'smooth'})">العصائر</button><button onclick="selectCat('hot');window.scrollTo({top:430,behavior:'smooth'})">المشروبات الساخنة</button><button onclick="selectCat('drinks');window.scrollTo({top:430,behavior:'smooth'})">مشروبات طاقة</button><button onclick="selectCat('drinks');window.scrollTo({top:430,behavior:'smooth'})">عصائر فريش</button><button onclick="selectCat('snacks');window.scrollTo({top:430,behavior:'smooth'})">سناكس</button></nav><div class="salata-actions"><button class="salata-cart" aria-label="السلة">🛒<span>0</span></button><button class="admin-btn" onclick="openLogin()">🔒 دخول الأدمن</button><button class="icon-btn" onclick="openDrawer()" aria-label="القائمة">☰</button></div></header>`);
+html = html.replace(/<header class="top">[\s\S]*?<\/header>/i, `<header class="top salata-top"><a class="salata-brand" href="#" aria-label="سلطة"><img src="logo.svg" alt="سلطة"></a><nav class="salata-nav"><button onclick="window.scrollTo({top:0,behavior:'smooth'})">الرئيسية</button><button onclick="selectCat('meals');window.scrollTo({top:430,behavior:'smooth'})">وجبات هيلثي</button><button onclick="selectCat('drinks');window.scrollTo({top:430,behavior:'smooth'})">العصائر</button><button onclick="selectCat('hot');window.scrollTo({top:430,behavior:'smooth'})">المشروبات الساخنة</button><button onclick="selectCat('drinks');window.scrollTo({top:430,behavior:'smooth'})">مشروبات طاقة</button><button onclick="selectCat('drinks');window.scrollTo({top:430,behavior:'smooth'})">عصائر فريش</button><button onclick="selectCat('snacks');window.scrollTo({top:430,behavior:'smooth'})">سناكس</button></nav><div class="salata-actions"><button class="salata-cart" aria-label="السلة">🛒<span>0</span></button><button class="admin-btn" onclick="openLogin()">🔒 دخول الأدمن</button><button class="icon-btn" onclick="openDrawer()" aria-label="القائمة">☰</button></div></header>`);
 
-const redesign=`<style id="salata-redesign">
+const redesign = `<style id="salata-redesign">
 :root{--salata-green:#58a348;--salata-green2:#3d8136;--salata-dark:#090e0a}
 html,body{min-height:100%;background:#101610!important;color:#fff!important}body{position:relative;isolation:isolate;margin:0;font-family:Cairo,Arial,sans-serif}
 body:before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(5,9,6,.18),rgba(5,9,6,.48)),${backgroundImage};background-position:center center;background-size:cover;background-repeat:no-repeat}
@@ -45,9 +47,9 @@ main{max-width:1120px!important;padding:0 18px 90px!important}.section-title{mar
 @media(max-width:800px){.salata-top{height:74px!important;padding:0 12px!important}.salata-brand img{width:72px!important;height:72px!important}.salata-nav{gap:10px;overflow:auto;justify-content:flex-start;scrollbar-width:none;margin:0 12px}.salata-nav::-webkit-scrollbar{display:none}.salata-nav button{font-size:11px;padding:24px 0 12px}.salata-actions .admin-btn{display:none}.salata-actions .icon-btn{display:block!important;background:rgba(255,255,255,.92)!important;color:#3c7d36!important;border:0!important;border-radius:13px!important;padding:10px 12px!important;font-size:21px!important}.salata-cart{width:46px;height:46px}.hero{padding-top:115px!important}.hero h1{font-size:37px!important}.cats{grid-template-columns:repeat(2,1fr)!important;gap:12px!important;width:min(620px,94vw)!important}.cat{min-height:175px!important}.grid{grid-template-columns:repeat(2,1fr)!important}}
 @media(max-width:560px){.salata-top{padding:0 10px!important}.salata-nav{display:none}.salata-brand img{width:65px!important;height:65px!important}.hero{padding:100px 12px 70px!important}.hero h1{font-size:31px!important;margin-top:42px!important}.hero p{font-size:17px!important}.cats{grid-template-columns:repeat(2,1fr)!important;gap:10px!important}.cat{min-height:170px!important;padding:16px 8px!important}.cat .ico{font-size:34px!important}.cat b{font-size:14px!important}.cat:after{font-size:10px;padding:6px 15px}.grid{grid-template-columns:1fr!important}.pic{height:230px!important}}
 </style>`;
-html=html.replace('</head>',redesign+`\n<!-- SALATA_BACKGROUND_BUILD:${backgroundVersion} -->\n</head>`);
+html = html.replace('</head>', redesign + `\n<!-- SALATA_BACKGROUND_BUILD:${backgroundVersion} -->\n</head>`);
 
-const stockJs=`<script id="salata-stock-build">(function(){function addStockFields(){if(document.getElementById('stockFields'))return;const price=document.getElementById('aPrice');if(!price||!price.closest('.form-grid'))return;const wrap=document.createElement('div');wrap.id='stockFields';wrap.innerHTML='<div><label>متابعة المخزون</label><select id="aTrackStock"><option value="false">لا</option><option value="true">نعم</option></select></div><div><label>الكمية الحالية</label><input id="aQuantity" type="number" min="0" value="0"></div>';price.closest('.form-grid').after(wrap)}function hook(){addStockFields();if(typeof window.saveItem!=='function'||window.saveItem.__salataStock)return;const originalEdit=window.editItem;window.saveItem.__salataStock=true;window.editItem=function(id){originalEdit(id);setTimeout(function(){addStockFields();const x=items.find(i=>Number(i.id)===Number(id));if(x){document.getElementById('aTrackStock').value=String(!!x.track_stock);document.getElementById('aQuantity').value=Number(x.quantity||0)}},100)}}new MutationObserver(hook).observe(document.body,{childList:true,subtree:true});setTimeout(hook,300)})();</script>`;
-html=html.replace('</body>',stockJs+'</body>');
-fs.writeFileSync(htmlPath,html);
-console.log('SALATA production build completed. Background:',backgroundVersion);
+const stockJs = `<script id="salata-stock-build">(function(){function addStockFields(){if(document.getElementById('stockFields'))return;const price=document.getElementById('aPrice');if(!price||!price.closest('.form-grid'))return;const wrap=document.createElement('div');wrap.id='stockFields';wrap.innerHTML='<div><label>متابعة المخزون</label><select id="aTrackStock"><option value="false">لا</option><option value="true">نعم</option></select></div><div><label>الكمية الحالية</label><input id="aQuantity" type="number" min="0" value="0"></div>';price.closest('.form-grid').after(wrap)}function hook(){addStockFields();if(typeof window.saveItem!=='function'||window.saveItem.__salataStock)return;const originalEdit=window.editItem;window.saveItem.__salataStock=true;window.editItem=function(id){originalEdit(id);setTimeout(function(){addStockFields();const x=items.find(i=>Number(i.id)===Number(id));if(x){document.getElementById('aTrackStock').value=String(!!x.track_stock);document.getElementById('aQuantity').value=Number(x.quantity||0)}},100)}}new MutationObserver(hook).observe(document.body,{childList:true,subtree:true});setTimeout(hook,300)})();</script>`;
+html = html.replace('</body>', stockJs + '</body>');
+fs.writeFileSync(htmlPath, html);
+console.log('SALATA production build completed. Background:', backgroundVersion);

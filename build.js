@@ -1,55 +1,53 @@
-const fs = require('fs');
-const crypto = require('crypto');
+const fs=require('fs');
+const crypto=require('crypto');
+const htmlPath='index.html';
+let html=fs.readFileSync(htmlPath,'utf8');
+let backgroundVersion='fallback';
+let backgroundImage='none';
 
-let html = fs.readFileSync('index.html', 'utf8');
-let backgroundVersion = 'fallback';
-let backgroundImage = 'none';
-
-// Build the customer's background into the page itself. This avoids runtime
-// fetches, CDN paths, cache issues, and Vercel static-output differences.
-try {
-  if (fs.existsSync('menu-bg.b64')) {
-    const raw = fs.readFileSync('menu-bg.b64', 'utf8').replace(/\s+/g, '').trim();
-    if (raw) {
-      const decoded = Buffer.from(raw, 'base64');
-      const isWebp = decoded.length > 12 && decoded.subarray(0, 4).toString('ascii') === 'RIFF' && decoded.subarray(8, 12).toString('ascii') === 'WEBP';
-      if (isWebp) {
-        fs.writeFileSync('menu-bg.webp', decoded);
-        backgroundVersion = crypto.createHash('sha1').update(decoded).digest('hex').slice(0, 10);
-        backgroundImage = `url("data:image/webp;base64,${raw}")`;
-      } else console.warn('Background asset skipped: invalid WebP data');
+try{
+  if(fs.existsSync('menu-bg.b64')){
+    const raw=fs.readFileSync('menu-bg.b64','utf8').replace(/\s+/g,'').trim();
+    const decoded=Buffer.from(raw,'base64');
+    const isWebp=decoded.length>12&&decoded.subarray(0,4).toString('ascii')==='RIFF'&&decoded.subarray(8,12).toString('ascii')==='WEBP';
+    if(isWebp){
+      fs.writeFileSync('menu-bg.webp',decoded);
+      backgroundVersion=crypto.createHash('sha1').update(decoded).digest('hex').slice(0,10);
+      backgroundImage=`url("data:image/webp;base64,${raw}")`;
     }
   }
-} catch (err) { console.warn('Background asset skipped:', err.message); }
+}catch(err){console.warn('Background asset skipped:',err.message)}
 
-// Remove previous generated blocks so every build is deterministic.
-html = html.replace(/<style id="salata-final-theme">[\s\S]*?<\/style>/gi, '');
-html = html.replace(/<script id="salata-background-runtime">[\s\S]*?<\/script>/gi, '');
-html = html.replace(/<meta name="keywords"[^>]*>\s*/gi, '');
-html = html.replace(/<meta property="og:title"[^>]*>\s*/gi, '');
-html = html.replace(/<meta property="og:description"[^>]*>\s*/gi, '');
+html=html.replace(/<style id="salata-final-theme">[\s\S]*?<\/style>/gi,'');
+html=html.replace(/<style id="salata-redesign">[\s\S]*?<\/style>/gi,'');
+html=html.replace(/<script id="salata-stock-build">[\s\S]*?<\/script>/gi,'');
+html=html.replace(/<meta name="keywords"[^>]*>\s*/gi,'');
+html=html.replace(/<meta property="og:title"[^>]*>\s*/gi,'');
+html=html.replace(/<meta property="og:description"[^>]*>\s*/gi,'');
 
-// The background is a real build-time CSS value. No browser fetch is needed.
-const themeCss = `<style id="salata-final-theme">
-html{min-height:100%;background:#111711!important}
-body{min-height:100%;position:relative;background:transparent!important;color:inherit}
-body:before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(8,14,9,.10),rgba(8,14,9,.32)),${backgroundImage};background-position:center center;background-size:cover;background-repeat:no-repeat}
-#customerApp,#adminApp{position:relative;z-index:1;min-height:100vh}
-.top{background:rgba(255,255,255,.06)!important;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
-.veg-pattern{background-color:transparent!important;background-image:none!important}
-.band{background:rgba(55,112,52,.72)!important;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
-.hero h1,.section-title h2{color:#fff!important;text-shadow:0 2px 12px rgba(0,0,0,.35)}
-.hero p,.section-title p{color:rgba(255,255,255,.9)!important;text-shadow:0 1px 8px rgba(0,0,0,.35)}
-.cat,.card,.panel,.stat-card,.admin-item,.modal-box,.drawer-panel{background:rgba(18,24,18,.72)!important;border-color:rgba(255,255,255,.16)!important;box-shadow:0 18px 45px rgba(0,0,0,.25)!important;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
-.cat b,.card h3,.item-name,.panel h2{color:#fff!important}.desc,.muted,.item-meta{color:rgba(255,255,255,.78)!important}.price{color:#9be27b!important}.tag{background:rgba(102,168,82,.22)!important;color:#b7efa1!important}.cat.active{border-color:#69ad59!important;background:rgba(59,119,55,.72)!important}.empty{background:rgba(18,24,18,.72)!important;color:rgba(255,255,255,.78)!important}.footer{background:rgba(32,83,31,.92)!important}.admin{background:transparent!important}.stock-badge{display:inline-block;margin-top:10px;padding:6px 11px;border-radius:999px;font-size:12px;font-weight:800}.stock-ok{background:#e5f5df;color:#377f32}.stock-out{background:#fff0f0;color:#d33;border:1px solid #f2bcbc}#stockFields{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}@media(max-width:560px){#stockFields{grid-template-columns:1fr}}
+html=html.replace(/const cats=\[[\s\S]*?\];let active=/,`const cats=[['hot','المشروبات الساخنة','☕'],['drinks','العصائر','🥤'],['meals','وجبات هيلثي','🥗'],['extras','السلطة','🥗'],['drinks','مشروبات طاقة','⚡'],['drinks','عصائر فريش','🧃'],['snacks','سناكس','🍪']];let active=`);
+
+html=html.replace(/<header class="top">[\s\S]*?<\/header>/i,`<header class="top salata-top"><a class="salata-brand" href="#" aria-label="سلطة"><img src="logo.svg" alt="سلطة"></a><nav class="salata-nav"><button onclick="window.scrollTo({top:0,behavior:'smooth'})">الرئيسية</button><button onclick="selectCat('meals');window.scrollTo({top:430,behavior:'smooth'})">وجبات هيلثي</button><button onclick="selectCat('drinks');window.scrollTo({top:430,behavior:'smooth'})">العصائر</button><button onclick="selectCat('hot');window.scrollTo({top:430,behavior:'smooth'})">المشروبات الساخنة</button><button onclick="selectCat('drinks');window.scrollTo({top:430,behavior:'smooth'})">مشروبات طاقة</button><button onclick="selectCat('drinks');window.scrollTo({top:430,behavior:'smooth'})">عصائر فريش</button><button onclick="selectCat('snacks');window.scrollTo({top:430,behavior:'smooth'})">سناكس</button></nav><div class="salata-actions"><button class="salata-cart" aria-label="السلة">🛒<span>0</span></button><button class="admin-btn" onclick="openLogin()">🔒 دخول الأدمن</button><button class="icon-btn" onclick="openDrawer()" aria-label="القائمة">☰</button></div></header>`);
+
+const redesign=`<style id="salata-redesign">
+:root{--salata-green:#58a348;--salata-green2:#3d8136;--salata-dark:#090e0a}
+html,body{min-height:100%;background:#101610!important;color:#fff!important}body{position:relative;isolation:isolate;margin:0;font-family:Cairo,Arial,sans-serif}
+body:before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(5,9,6,.18),rgba(5,9,6,.48)),${backgroundImage};background-position:center center;background-size:cover;background-repeat:no-repeat}
+#customerApp,#adminApp{position:relative;z-index:1;min-height:100vh}#customerApp{background:linear-gradient(180deg,rgba(0,0,0,.03),rgba(0,0,0,.30))}
+.salata-top{position:fixed!important;top:0;left:0;right:0;width:100%;height:88px!important;z-index:50!important;display:flex!important;align-items:center!important;justify-content:space-between!important;padding:0 34px!important;background:linear-gradient(180deg,rgba(0,0,0,.72),rgba(0,0,0,.12))!important;border-bottom:1px solid rgba(255,255,255,.08)!important;backdrop-filter:blur(4px)!important;-webkit-backdrop-filter:blur(4px)!important;overflow:visible!important}
+.salata-top .veg-pattern,.salata-top .band{display:none!important}.salata-brand{display:block;flex:0 0 auto}.salata-brand img{width:92px!important;height:92px!important;border-radius:50%;object-fit:cover;border:0!important;box-shadow:0 10px 30px rgba(0,0,0,.45)!important;background:transparent!important}
+.salata-nav{display:flex;align-items:center;justify-content:center;gap:31px;flex:1;margin:0 22px;white-space:nowrap}.salata-nav button{border:0;background:transparent;color:#fff;font-weight:800;font-size:15px;padding:27px 0 17px;position:relative;text-shadow:0 2px 10px rgba(0,0,0,.8)}.salata-nav button:hover,.salata-nav button:first-child{color:#67b455}.salata-nav button:first-child:after{content:"";position:absolute;bottom:8px;left:0;right:0;height:2px;background:#67b455;border-radius:2px}
+.salata-actions{display:flex;align-items:center;gap:10px;flex:0 0 auto}.salata-cart{width:50px;height:50px;border-radius:50%;border:1px solid rgba(255,255,255,.16);background:rgba(7,12,8,.55);color:#fff;font-size:21px;position:relative}.salata-cart span{position:absolute;right:-2px;top:-3px;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:#4d963e;color:#fff;font-size:10px;font-weight:800}.salata-actions .icon-btn{display:none}.admin-btn{border:1px solid rgba(255,255,255,.12)!important;border-radius:14px!important;padding:10px 13px!important;background:rgba(237,248,232,.94)!important;color:#397532!important;font-weight:800!important;box-shadow:0 8px 25px rgba(0,0,0,.18)!important}
+.hero{min-height:100vh!important;padding:155px 20px 90px!important;display:flex!important;flex-direction:column!important;align-items:center!important;text-align:center!important;background:transparent!important}.hero .leaf{display:none}.hero h1{margin:55px 0 0!important;color:#fff!important;font-size:48px!important;font-weight:800!important;text-shadow:0 5px 25px rgba(0,0,0,.78)!important}.hero p{margin:4px 0 22px!important;color:#fff!important;font-size:20px!important;text-shadow:0 2px 12px rgba(0,0,0,.8)!important}.hero:before{content:"";display:block;position:absolute;inset:0;z-index:-1;background:radial-gradient(circle at 50% 45%,rgba(70,120,60,.08),transparent 32%)}
+.cats{width:min(900px,94vw)!important;max-width:none!important;margin:25px auto 0!important;padding:0!important;display:grid!important;grid-template-columns:repeat(4,1fr)!important;gap:20px!important}.cat{min-height:210px!important;padding:23px 14px 18px!important;border:1px solid rgba(255,255,255,.14)!important;border-radius:20px!important;background:rgba(8,13,9,.68)!important;color:#fff!important;box-shadow:0 18px 45px rgba(0,0,0,.32)!important;backdrop-filter:blur(10px)!important;-webkit-backdrop-filter:blur(10px)!important}.cat:hover,.cat.active{transform:translateY(-5px)!important;border-color:#5aa74a!important;background:rgba(18,31,18,.76)!important}.cat .ico{font-size:43px!important;color:#62ad4f!important}.cat b{color:#fff!important;font-size:18px!important}.cat:after{content:"عرض الأصناف";display:block;margin:13px auto 0;background:#4e963f;color:#fff;border-radius:999px;padding:7px 24px;font-size:12px;font-weight:800;width:max-content}
+main{max-width:1120px!important;padding:0 18px 90px!important}.section-title{margin-bottom:24px!important}.section-title h2{color:#fff!important;text-shadow:0 3px 18px rgba(0,0,0,.7)!important}.section-title p{color:rgba(255,255,255,.76)!important}.grid{grid-template-columns:repeat(3,1fr)!important}.card{background:rgba(8,13,9,.72)!important;border:1px solid rgba(255,255,255,.13)!important;box-shadow:0 20px 50px rgba(0,0,0,.3)!important;backdrop-filter:blur(9px)!important}.card h3{color:#fff!important}.desc{color:rgba(255,255,255,.76)!important}.price{color:#8fda7c!important;border-top-color:rgba(255,255,255,.14)!important}.tag{background:rgba(88,163,72,.2)!important;color:#afe89d!important}.pic{background:#182219!important}.footer{background:rgba(5,9,6,.88)!important;color:rgba(255,255,255,.72)!important}.drawer-panel,.modal-box{background:#101710!important;color:#fff!important;border-color:rgba(255,255,255,.12)!important}.drawer-panel h2,.modal-box h2{color:#7cc869!important}
+@media(max-width:1050px){.salata-nav{gap:17px}.salata-nav button{font-size:13px}.salata-top{padding:0 18px!important}.cats{width:min(760px,94vw)!important}}
+@media(max-width:800px){.salata-top{height:74px!important;padding:0 12px!important}.salata-brand img{width:72px!important;height:72px!important}.salata-nav{gap:10px;overflow:auto;justify-content:flex-start;scrollbar-width:none;margin:0 12px}.salata-nav::-webkit-scrollbar{display:none}.salata-nav button{font-size:11px;padding:24px 0 12px}.salata-actions .admin-btn{display:none}.salata-actions .icon-btn{display:block!important;background:rgba(255,255,255,.92)!important;color:#3c7d36!important;border:0!important;border-radius:13px!important;padding:10px 12px!important;font-size:21px!important}.salata-cart{width:46px;height:46px}.hero{padding-top:115px!important}.hero h1{font-size:37px!important}.cats{grid-template-columns:repeat(2,1fr)!important;gap:12px!important;width:min(620px,94vw)!important}.cat{min-height:175px!important}.grid{grid-template-columns:repeat(2,1fr)!important}}
+@media(max-width:560px){.salata-top{padding:0 10px!important}.salata-nav{display:none}.salata-brand img{width:65px!important;height:65px!important}.hero{padding:100px 12px 70px!important}.hero h1{font-size:31px!important;margin-top:42px!important}.hero p{font-size:17px!important}.cats{grid-template-columns:repeat(2,1fr)!important;gap:10px!important}.cat{min-height:170px!important;padding:16px 8px!important}.cat .ico{font-size:34px!important}.cat b{font-size:14px!important}.cat:after{font-size:10px;padding:6px 15px}.grid{grid-template-columns:1fr!important}.pic{height:230px!important}}
 </style>`;
+html=html.replace('</head>',redesign+`\n<!-- SALATA_BACKGROUND_BUILD:${backgroundVersion} -->\n</head>`);
 
-const seo = '<meta name="keywords" content="سلطة, SALATA, وجبات صحية, مطعم صحي, healthy food, healthy meals, مشروبات, عصائر, مشروبات ساخنة, سناكس, إضافات, menu"><meta name="description" content="سلطة SALATA — وجبات صحية ومشروبات وعصائر وسناكس وإضافات، اختيارات صحية لحياة أفضل."><meta property="og:title" content="سلطة | SALATA"><meta property="og:description" content="وجبات صحية ومشروبات وعصائر وسناكس وإضافات — سلطة SALATA.">';
-html = html.replace('</head>', themeCss + seo + `<!-- SALATA_BACKGROUND_BUILD:${backgroundVersion} -->` + '</head>');
-
-const stockJs = '<script id="salata-stock-build">(function(){function addStockFields(){if(document.getElementById(\'stockFields\'))return;const price=document.getElementById(\'aPrice\');if(!price||!price.closest(\'.form-grid\'))return;const wrap=document.createElement(\'div\');wrap.id=\'stockFields\';wrap.innerHTML=\'<div><label>متابعة المخزون</label><select id="aTrackStock"><option value="false">لا</option><option value="true">نعم</option></select></div><div><label>الكمية الحالية</label><input id="aQuantity" type="number" min="0" value="0"></div>\';price.closest(\'.form-grid\').after(wrap)}function hook(){addStockFields();if(typeof window.saveItem!==\'function\'||window.saveItem.__salataStock)return;const originalEdit=window.editItem;window.saveItem.__salataStock=true;window.editItem=function(id){originalEdit(id);setTimeout(function(){addStockFields();const x=items.find(i=>Number(i.id)===Number(id));if(x){document.getElementById(\'aTrackStock\').value=String(!!x.track_stock);document.getElementById(\'aQuantity\').value=Number(x.quantity||0)}},100)}}new MutationObserver(hook).observe(document.body,{childList:true,subtree:true});setTimeout(hook,300)})();</script>';
-html = html.replace(/<script id="salata-stock-build">[\s\S]*?<\/script>/gi, '');
-html = html.replace('</body>', stockJs + '</body>');
-
-fs.writeFileSync('index.html', html);
-console.log('SALATA production build completed. Background embedded:', backgroundVersion);
+const stockJs=`<script id="salata-stock-build">(function(){function addStockFields(){if(document.getElementById('stockFields'))return;const price=document.getElementById('aPrice');if(!price||!price.closest('.form-grid'))return;const wrap=document.createElement('div');wrap.id='stockFields';wrap.innerHTML='<div><label>متابعة المخزون</label><select id="aTrackStock"><option value="false">لا</option><option value="true">نعم</option></select></div><div><label>الكمية الحالية</label><input id="aQuantity" type="number" min="0" value="0"></div>';price.closest('.form-grid').after(wrap)}function hook(){addStockFields();if(typeof window.saveItem!=='function'||window.saveItem.__salataStock)return;const originalEdit=window.editItem;window.saveItem.__salataStock=true;window.editItem=function(id){originalEdit(id);setTimeout(function(){addStockFields();const x=items.find(i=>Number(i.id)===Number(id));if(x){document.getElementById('aTrackStock').value=String(!!x.track_stock);document.getElementById('aQuantity').value=Number(x.quantity||0)}},100)}}new MutationObserver(hook).observe(document.body,{childList:true,subtree:true});setTimeout(hook,300)})();</script>`;
+html=html.replace('</body>',stockJs+'</body>');
+fs.writeFileSync(htmlPath,html);
+console.log('SALATA production build completed. Background:',backgroundVersion);
